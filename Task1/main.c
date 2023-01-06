@@ -18,28 +18,45 @@ int main() {
 	int destinacija;
 
 	while (true) {
-		printf("Trenutno nadstropje: %s\n", nadstropje(trenutno_nadstropje));
-		destinacija = vnesi_destinacijo();
+		// printf("Trenutno nadstropje: %s\n", nadstropje(destinacija));
+		// destinacija = vnesi_destinacijo();
 
-		if (destinacija - trenutno_nadstropje < 0) {
-			for (;trenutno_nadstropje>destinacija; trenutno_nadstropje--)
-				printf("%s->", nadstropje(trenutno_nadstropje));
-		} else {
-			for (;trenutno_nadstropje<destinacija; trenutno_nadstropje++)
-				printf("%s->", nadstropje(trenutno_nadstropje));
-		}
-		printf("%s\n", nadstropje(trenutno_nadstropje));
-
-		printf("Trenutno nadstropje: %s\n", nadstropje(trenutno_nadstropje));
-		
-		// if (izstop()) {
-		// 	printf("Izstopili ste na %s nadstropju\n", nadstropje(trenutno_nadstropje));
-		// 	break;
+		// if (destinacija - trenutno_nadstropje < 0) {
+		// 	for (;trenutno_nadstropje>destinacija; trenutno_nadstropje--)
+		// 		printf("%s->", nadstropje(trenutno_nadstropje));
+		// } else {
+		// 	for (;trenutno_nadstropje<destinacija; trenutno_nadstropje++)
+		// 		printf("%s->", nadstropje(trenutno_nadstropje));
 		// }
+		// printf("%s\n", nadstropje(trenutno_nadstropje));
+
+		// printf("Trenutno nadstropje: %s\n", nadstropje(trenutno_nadstropje));
+		
+		if (izstop()) {
+			printf("Izstopili ste na %s nadstropju\n", nadstropje(trenutno_nadstropje));
+			break;
+		}
 		printf("--------------------------\n\n");
 	}
 }
 
+// ta fukcija vprasa uporabnika po destinaciji oz. 
+int vnesi_destinacijo() {
+	int destinacija = KLET-1;
+	char odgovor[MAX_STRING_LEN];
+	do {
+		printf("Vnesite destinacijo: ");
+		fgets(odgovor, sizeof(odgovor), stdin);
+		destinacija = preveri_vnos(odgovor);
+
+		if (destinacija >= KLET && destinacija <= STEVILO_NADSTROPJI) {
+			return destinacija;
+		}
+		else {
+			printf("Napaka: vnesete lahko samo stevila od %i do %i, P-pritlicje in B1, B2, B3 za klet\n", 1, STEVILO_NADSTROPJI);
+		}
+	} while (true);
+}
 
 // funkcija vrne stevilo od [KLET, STEVILO_NADSTROPJI] = [-3, 5]
 // ko je napacen vnos vrne stevilo manjse stevilo od KLET oz. KLET-1, zato da pogoj veljavnosti vnosa v funkciji
@@ -69,47 +86,28 @@ int preveri_vnos(char str[]) {
 		return n;
 	
 	// če nobeden izmed pogojev ni bil izpolnjen vrni stevilo, ki je manjse od KLET oz. KLET-1 -||-
-	return -(KLET + 1);
+	return KLET-1;
 }
 
 // funkcija vprasa uporabnika, če želi izsopit
 // veljaven odgovor je lahko samo DA, Da, da ali NE, Ne, ne
 // če uporabni, ne zeli izstopiti lahko samo klikne ENTER in se bo program naprej izvajal
 bool izstop() {
-	// 
-	char odgovor[MAX_STRING_LEN];	// size of odgovor 3 = 2 * char + \0
+	char odgovor[MAX_STRING_LEN];
 	while (true) {
 		printf("Ali zelite izstopiti: ");
 		// uporabljam funkcijo fgets namesto scanf("%s", odgovor);, ker dopusca, da lahko uporabnik vnese samo ENTER in funkcija ne caka na vnos
 		fgets(odgovor, sizeof(odgovor), stdin);	// beri vnos iz STDIN in zapisi v spremenljivko odgovor
-		fflush(stdin);
-		if (!strcmp(odgovor, "da") || !strcmp(odgovor, "DA") || !strcmp(odgovor, "Da")) {
+		// fflush(stdin);
+		// preveri ce je odgovor DA
+		if ((odgovor[0] == 'd' || odgovor[0] == 'D') && (odgovor[1] == 'a' || odgovor[1] == 'A')) {
 			return true;
-		} else if (!strcmp(odgovor, "ne") || !strcmp(odgovor, "NE") || !strcmp(odgovor, "Ne") || !strcmp(odgovor, "")) {
+		} else if (odgovor[0] = '\n') {
 			return false;
 		} else {
-			printf("Veljaven odgovor: [DA/NE]\n");
+			printf("Veljaven odgovor: (DA in [ENTER] za NE)\n");
 		}
 	}
-}
-
-// ta fukcija vprasa uporabnika po destinaciji oz. 
-int vnesi_destinacijo() {
-	int destinacija = KLET-1;
-	char odgovor[3];
-	do {
-		printf("Vnesite destinacijo: ");
-		fgets(odgovor, sizeof(odgovor), stdin);
-		// sscanf(odgovor, "%i", &destinacija);
-		fflush(stdin);
-		destinacija = preveri_vnos(odgovor);
-
-		if (destinacija >= KLET && destinacija <= STEVILO_NADSTROPJI) 
-			return destinacija;
-		else
-			printf("Napaka: vnesete lahko samo stevila od %i do %i, P-pritlicje in B1, B2, B3 za klet\n", 1, STEVILO_NADSTROPJI);
-			// break;
-	} while (true);
 }
 
 // ta funkcija prejme stevilo nadstropja in vrne pradstavitev nadstropju v char* oz. vrne string
