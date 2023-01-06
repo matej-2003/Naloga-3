@@ -5,8 +5,12 @@
 #include <time.h>
 #include <string.h>
 
-
 #define MAX_STRING_LEN 100
+#define STEVILO_POSKUSOV 10
+
+// CRKE PO STEVILU POJEVITEV: a: 38, e: 30, i: 27, o: 23, r: 22, n: 19, l: 17, p: 17, t: 17, v: 13, j: 11, k: 11, s: 11, z: 8, d: 8, m: 7, b: 5, g: 5, u: 4, f: 2, c: 2
+// NAJBOLJSA RESITEV: aeiornlpt
+// NAJSLABSA RESITEV: xqwyvjkszdmbgufc
 
 // 1. ascii grafika je kopirana iz spletne strani https://ascii.co.uk/art/hangman 14.1.2023
 char slikice[10][16 * 8] = {
@@ -76,7 +80,7 @@ char slikice[10][16 * 8] = {
 	"   ________   \n"
 	"   |/     |   \n"
 	"   |     (_)  \n"
-	"   |      |  \n"
+	"   |      |   \n"
 	"   |      |   \n"
 	"   |          \n"
 	"   |          \n"
@@ -101,7 +105,7 @@ char slikice[10][16 * 8] = {
 	"__/|\\__      \n",
 };
 
-// 38 moznih besed, ki jih program nakjucno izbere
+// 37 moznih besed, ki jih program nakjucno izbere
 // program je char pointer array, ker so besede razlicne dolzine in string array ni mogoc
 char *seznam_besed[] = {
 	"bolezen",
@@ -137,7 +141,6 @@ char *seznam_besed[] = {
 	"pregledati",
 	"prestol",
 	"previden",
-	"previden",
 	"prisega",
 	"priznat",
 	"propad",
@@ -147,8 +150,9 @@ char *seznam_besed[] = {
 
 char* pridobi_skrito_besedo(char beseda[]);
 bool izpolni_besedo(char skrita_beseda[], char beseda[], char crka);
-void izpisi_besedo(char skrita_beseda[]);
+void izpisi_iskano_besedo(char skrita_beseda[]);
 int str_len(char word[]);
+bool dovoljen_znak(char znak);
 bool preveri_napacen_vnos(char napacni_vnosi[], char crka);
 void izpisi_napacne_vnose(char napacni_vnosi[]);
 
@@ -166,40 +170,45 @@ int main() {
 	char* napacni_vnosi = malloc(sizeof(char) * MAX_STRING_LEN); // string, ki hrani napacne znake
 	napacni_vnosi[0] = '\0';
 
-	do {
+	while (true) {
 		char odgovor[10];
 		char c;
-
+	
+		printf("Stevilo poskusov: %i\n", STEVILO_POSKUSOV);
+		printf("Preostali poskusi: %i\n", STEVILO_POSKUSOV - stevilo_napacnih_vnosov);
+		printf("Napacni vnosi: %i, %s\n", stevilo_napacnih_vnosov, napacni_vnosi);
 		printf("Iskana beseda: ");
-		izpisi_besedo(skrita_beseda);
-		printf("\nNapacni vnosi: %s\n", napacni_vnosi);
-		printf("%s\n\n", slikice[stevilo_napacnih_vnosov]);
+		izpisi_iskano_besedo(skrita_beseda);
+		// slikica
+		printf("\n%s\n\n", slikice[stevilo_napacnih_vnosov]);
 		printf("Vnesi crko: ");
-		fgets(odgovor, 10, stdin);
+		scanf(" %c", &c);
 		fflush(stdin);
-		if (sscanf(odgovor, " %c", &c) != 1) {
-			break;
-		}
 
-		if (izpolni_besedo(skrita_beseda, beseda, c) == false && preveri_napacen_vnos(napacni_vnosi, c)) {
-			printf("Stevilo napacnih vnosov: %i, %s\n", stevilo_napacnih_vnosov + 1, napacni_vnosi);
-			napacni_vnosi[stevilo_napacnih_vnosov] = c;
-			napacni_vnosi[stevilo_napacnih_vnosov + 1] = '\0';
-			stevilo_napacnih_vnosov++;
+		// pogoj izpolnjen ce je crka dovoljen znak IN ce crka ni v besedi IN ce je crka ze med napacnimi vnosi
+		if (dovoljen_znak(c)) {
+			if (izpolni_besedo(skrita_beseda, beseda, c) == false && preveri_napacen_vnos(napacni_vnosi, c)) {
+				napacni_vnosi[stevilo_napacnih_vnosov] = c;
+				napacni_vnosi[stevilo_napacnih_vnosov + 1] = '\0';
+				stevilo_napacnih_vnosov++;
+			}
+		} else {
+			printf("NAPACEN VNOS!\n");
 		}
 
 		if (strcmp(beseda, skrita_beseda) == 0) {
-			printf("---------------------\n");
+			printf("\n---------------------\n");
 			printf("|       ZMAGA!      |\n");
 			printf("---------------------\n");
 			break;
-		} else if (stevilo_napacnih_vnosov >= 9) {
-			printf("---------------------\n");
+		} else if (stevilo_napacnih_vnosov == STEVILO_POSKUSOV) {
+			printf("\n---------------------\n");
 			printf("|    KONEC IGRE!    |\n");
 			printf("---------------------\n");
 			break;
 		}
-	} while (true);
+		printf("\n\n");
+	}
 
 	printf("Iskana beseda: %s\n", beseda);
 	free(skrita_beseda);
@@ -213,6 +222,13 @@ char* pridobi_skrito_besedo(char *beseda) {
 		skrita_beseda[i] = '_';	 // zanka gre skozi vse crke v izbrani besedi in nastavi znake v skriti_besedi na '_'
 	skrita_beseda[i + 1] = '\0'; // nastavi zadni znak na '\0', ki zaznamuje konec stringa
 	return skrita_beseda;
+}
+
+bool dovoljen_znak(char znak) {
+	if (znak >= 'A' && znak <= 'Z') // ce je znak velika pretvori v majhno
+		znak += 32;
+	if (!(znak >= 'a' && znak <= 'z')) // preveri ce je ni znak me 'a' in 'z'
+		return false;
 }
 
 bool izpolni_besedo(char skrita_beseda[], char beseda[], char crka) {
@@ -233,21 +249,18 @@ void izpisi_napacne_vnose(char napacni_vnosi[]) {
 
 // true - vnos je napacen
 bool preveri_napacen_vnos(char napacni_vnosi[], char crka) {
-	if (crka >= 'A' && crka <= 'Z') // ce je crka celika pretvori v majhno
-		crka += 32;
-	if (crka < 'a' && crka > 'z') // preveri ce je ni crka me a in z
-		return true;
 	for (int i = 0; napacni_vnosi[i] != '\0'; i++)
 		if (napacni_vnosi[i] == crka)
 			return false;
 	return true;
 }
 
-void izpisi_besedo(char *skrita_beseda) {
+void izpisi_iskano_besedo(char *skrita_beseda) {
 	for (int i = 0; skrita_beseda[i] != '\0'; i++)
 		printf("%c ", skrita_beseda[i]);
 }
 
+// vrne dolzino stringa
 int str_len(char word[]) {
 	int i = 0;
 	while (word[i] != '\0')
