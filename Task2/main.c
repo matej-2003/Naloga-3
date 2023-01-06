@@ -154,7 +154,7 @@ int str_len(char word[]);
 bool dovoljen_znak(char znak);
 bool preveri_napacen_vnos(char napacni_vnosi[], char crka);
 void izpisi_napacne_vnose(char napacni_vnosi[]);
-
+void dodaj_vnos(char crka, char vsi_vnosi[]);
 
 int main() {
 	srand(time(NULL));
@@ -168,6 +168,8 @@ int main() {
 	int stevilo_napacnih_vnosov = 0;
 	char* napacni_vnosi = malloc(sizeof(char) * MAX_STRING_LEN); // string, ki hrani napacne znake
 	napacni_vnosi[0] = '\0';
+	char* vsi_vnosi = malloc(sizeof(char) * MAX_STRING_LEN); // string, ki hrani vse znake
+	vsi_vnosi[0] = '\0';
 
 	while (true) {
 		char odgovor[10];
@@ -176,6 +178,7 @@ int main() {
 		printf("Stevilo poskusov: %i\n", STEVILO_POSKUSOV);
 		printf("Preostali poskusi: %i\n", STEVILO_POSKUSOV - stevilo_napacnih_vnosov);
 		printf("Napacni vnosi: %i, %s\n", stevilo_napacnih_vnosov, napacni_vnosi);
+		printf("Vsi vnosi: %s\n", vsi_vnosi);
 		printf("Iskana beseda: ");
 		izpisi_iskano_besedo(skrita_beseda);
 		// slikica
@@ -186,6 +189,8 @@ int main() {
 
 		// pogoj izpolnjen ce je crka dovoljen znak IN ce crka ni v besedi IN ce je crka ze med napacnimi vnosi
 		if (dovoljen_znak(c)) {
+			// dodaj vnos v string vsi_vnosi
+			dodaj_vnos(c, vsi_vnosi);
 			if (izpolni_besedo(skrita_beseda, beseda, c) == false && preveri_napacen_vnos(napacni_vnosi, c)) {
 				napacni_vnosi[stevilo_napacnih_vnosov] = c;
 				napacni_vnosi[stevilo_napacnih_vnosov + 1] = '\0';
@@ -257,6 +262,16 @@ bool preveri_napacen_vnos(char napacni_vnosi[], char crka) {
 void izpisi_iskano_besedo(char *skrita_beseda) {
 	for (int i = 0; skrita_beseda[i] != '\0'; i++)
 		printf("%c ", skrita_beseda[i]);
+}
+
+void dodaj_vnos(char crka, char vsi_vnosi[]) {
+	int i = 0;
+	while (vsi_vnosi[i] != '\0') {
+		if (vsi_vnosi[i] == crka) return;
+		i++;
+	}
+	vsi_vnosi[i] = crka;
+	vsi_vnosi[i + 1] = '\0';
 }
 
 // vrne dolzino stringa
